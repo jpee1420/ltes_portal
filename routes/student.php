@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Student\AttendanceViewController;
+use App\Http\Controllers\Student\CalendarController;
 use App\Http\Controllers\Student\DashboardController;
 use App\Http\Controllers\Student\GradeViewController;
 use Illuminate\Support\Facades\Route;
@@ -13,4 +14,7 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
 
     // Attendance Log & Summary
     Route::get('/attendance', [AttendanceViewController::class, 'index'])->name('attendance.index');
+
+    // School Calendar View
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
 });

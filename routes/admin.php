@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\CalendarController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SchoolYearController;
 use App\Http\Controllers\Admin\SectionController;
@@ -27,4 +28,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('sections', SectionController::class)->except(['destroy']);
     Route::post('/sections/{section}/assign-student', [SectionController::class, 'assignStudent'])->name('sections.assign-student');
     Route::delete('/sections/{section}/students/{student}', [SectionController::class, 'unassignStudent'])->name('sections.unassign-student');
+
+    // Calendar Management
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+    Route::post('/calendar', [CalendarController::class, 'store'])->name('calendar.store');
+    Route::put('/calendar/{calendarEvent}', [CalendarController::class, 'update'])->name('calendar.update');
+    Route::delete('/calendar/{calendarEvent}', [CalendarController::class, 'destroy'])->name('calendar.destroy');
 });

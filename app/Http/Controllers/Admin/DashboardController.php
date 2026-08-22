@@ -8,6 +8,8 @@ use App\Models\SchoolYear;
 use App\Models\Section;
 use App\Models\StudentProfile;
 use App\Models\User;
+use App\Queries\Calendar\GetUpcomingEvents;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,7 +18,7 @@ class DashboardController extends Controller
     /**
      * Display administrator overview dashboard with key metrics.
      */
-    public function index(): Response
+    public function index(Request $request, GetUpcomingEvents $upcomingEventsQuery): Response
     {
         $activeSchoolYear = SchoolYear::active()->first() ?? SchoolYear::latest()->first();
 
@@ -35,6 +37,8 @@ class DashboardController extends Controller
             ->orderBy('grade_level_id')
             ->get();
 
+        $upcomingEvents = $upcomingEventsQuery->execute($request->user(), 5);
+
         return Inertia::render('admin/Dashboard', [
             'metrics' => [
                 'total_students' => $totalStudents,
@@ -44,6 +48,7 @@ class DashboardController extends Controller
             ],
             'recentStudents' => $recentStudents,
             'sections' => $sections,
+            'upcomingEvents' => $upcomingEvents,
         ]);
     }
 }

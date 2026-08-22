@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\SchoolYear;
 use App\Queries\Attendance\GetStudentAttendanceSummary;
+use App\Queries\Calendar\GetUpcomingEvents;
 use App\Queries\Grades\FetchStudentReportCard;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,16 +16,23 @@ class DashboardController extends Controller
     /**
      * Display the student & parent portal overview dashboard.
      */
-    public function index(Request $request, FetchStudentReportCard $gradesQuery, GetStudentAttendanceSummary $attendanceQuery): Response
-    {
+    public function index(
+        Request $request,
+        FetchStudentReportCard $gradesQuery,
+        GetStudentAttendanceSummary $attendanceQuery,
+        GetUpcomingEvents $upcomingEventsQuery
+    ): Response {
         $user = $request->user();
         $studentProfile = $user->studentProfile;
+
+        $upcomingEvents = $upcomingEventsQuery->execute($user, 5);
 
         if (! $studentProfile) {
             return Inertia::render('student/Dashboard', [
                 'student' => null,
                 'gradesSummary' => null,
                 'attendanceSummary' => null,
+                'upcomingEvents' => $upcomingEvents,
             ]);
         }
 
@@ -52,6 +60,7 @@ class DashboardController extends Controller
                 'quarterly_averages' => $reportCard['quarterly_averages'],
             ],
             'attendanceSummary' => $attendance['summary'],
+            'upcomingEvents' => $upcomingEvents,
         ]);
     }
 }

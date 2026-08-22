@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0] - 2026-08-23
+
+### Added
+- **School Calendar Feature:**
+  - `calendar_events` database schema supporting 5 event categories (`exam`, `holiday`, `school_event`, `deped_activity`, `section_event`) with optional multi-day date ranges.
+  - Role-aware event scoping: Admins manage school-wide events; Teachers manage section-scoped activities for their assigned homeroom; Learners and Parents view all relevant events.
+  - Action mutations: `CreateCalendarEvent`, `UpdateCalendarEvent`, and `DeleteCalendarEvent` with role-level ownership validation.
+  - Read queries: `GetCalendarEvents` (monthly matrix with month boundary overlap calculations) and `GetUpcomingEvents` (top 5 chronological activities from today).
+  - Pure Vue 3 interactive monthly calendar grid (6×7 day matrix with custom previous/next month navigation) and switchable agenda list view.
+  - Role-specific calendar pages for Admin (`admin/calendar/Index.vue`), Teacher (`teacher/calendar/Index.vue`), and Student/Parent (`student/calendar/Index.vue`).
+  - "Upcoming Events & Activities" card widgets embedded into Admin, Teacher, and Student portal dashboards.
+  - Architecture Decision Record `ADR-005` in `docs/decisions/0005-school-calendar-and-event-scoping.md`.
+  - Comprehensive automated test coverage: 20 new tests bringing the suite to 106 passing tests (560 assertions).
+
+---
+
 ## [0.1.0] - 2026-08-22
 
 ### Added

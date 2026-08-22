@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Teacher;
 use App\Http\Controllers\Controller;
 use App\Models\AttendanceRecord;
 use App\Models\Section;
+use App\Queries\Calendar\GetUpcomingEvents;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -15,7 +16,7 @@ class DashboardController extends Controller
     /**
      * Display the teacher overview dashboard.
      */
-    public function index(Request $request): Response
+    public function index(Request $request, GetUpcomingEvents $upcomingEventsQuery): Response
     {
         $user = $request->user();
 
@@ -50,10 +51,13 @@ class DashboardController extends Controller
             }
         }
 
+        $upcomingEvents = $upcomingEventsQuery->execute($user, 5);
+
         return Inertia::render('teacher/Dashboard', [
             'section' => $section,
             'todayAttendance' => $attendanceStats,
             'todayDate' => Carbon::today()->toFormattedDateString(),
+            'upcomingEvents' => $upcomingEvents,
         ]);
     }
 }

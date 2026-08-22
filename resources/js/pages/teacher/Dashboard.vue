@@ -2,7 +2,8 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, GraduationCap, TableProperties, CalendarDays, BookOpen, CheckCircle, AlertCircle, ArrowRight, ShieldCheck } from '@lucide/vue';
+import { Badge } from '@/components/ui/badge';
+import { Users, GraduationCap, TableProperties, CalendarDays, BookOpen, CheckCircle, AlertCircle, ArrowRight, ShieldCheck, Clock } from '@lucide/vue';
 
 defineProps<{
     section: {
@@ -23,7 +24,29 @@ defineProps<{
         is_recorded: boolean;
     };
     todayDate: string;
+    upcomingEvents?: Array<{
+        id: number;
+        title: string;
+        category: string;
+        category_label: string;
+        color: string;
+        start_date: string;
+        end_date: string | null;
+        is_school_wide: boolean;
+        section_name: string | null;
+    }>;
 }>();
+
+function getCategoryDot(color: string) {
+    switch (color) {
+        case 'red': return 'bg-rose-500';
+        case 'amber': return 'bg-amber-500';
+        case 'blue': return 'bg-blue-500';
+        case 'purple': return 'bg-purple-500';
+        case 'emerald': return 'bg-emerald-500';
+        default: return 'bg-primary';
+    }
+}
 </script>
 
 <template>
@@ -49,6 +72,12 @@ defineProps<{
                 </div>
 
                 <div v-if="section" class="flex flex-wrap items-center gap-2">
+                    <Link href="/teacher/calendar">
+                        <Button size="sm" variant="outline" class="gap-1.5">
+                            <CalendarDays class="h-4 w-4" />
+                            Class Calendar
+                        </Button>
+                    </Link>
                     <Link href="/teacher/grades">
                         <Button size="sm" class="gap-1.5 shadow-sm">
                             <TableProperties class="h-4 w-4" />
@@ -103,8 +132,8 @@ defineProps<{
                     </div>
                 </Card>
 
-                <!-- 2 Column Widgets -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 3 Column Grid: Attendance, Subjects, Upcoming Events -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <!-- Today's Attendance Widget -->
                     <Card class="rounded-xl border border-border/70 shadow-sm overflow-hidden flex flex-col justify-between">
                         <CardHeader class="pb-3 border-b border-border bg-muted/20">
@@ -116,7 +145,7 @@ defineProps<{
                                 <span class="text-xs font-medium text-muted-foreground">{{ todayDate }}</span>
                             </div>
                         </CardHeader>
-                        <CardContent class="p-6">
+                        <CardContent class="p-5">
                             <div v-if="!todayAttendance.is_recorded" class="py-4 text-center">
                                 <div class="inline-flex rounded-full bg-amber-500/10 p-3 text-amber-600 mb-2">
                                     <AlertCircle class="h-6 w-6" />
@@ -128,7 +157,7 @@ defineProps<{
                                 <Link href="/teacher/attendance">
                                     <Button size="sm" class="gap-1.5">
                                         <CalendarDays class="h-4 w-4" />
-                                        Record Today's Attendance
+                                        Record Attendance
                                     </Button>
                                 </Link>
                             </div>
@@ -138,22 +167,22 @@ defineProps<{
                                     <CheckCircle class="h-4 w-4" />
                                     Recorded for today
                                 </div>
-                                <div class="grid grid-cols-4 gap-2 text-center">
-                                    <div class="rounded-lg bg-emerald-500/10 p-2.5">
-                                        <span class="text-xs text-emerald-800 dark:text-emerald-300 block">Present</span>
-                                        <span class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1 block">{{ todayAttendance.present }}</span>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                                    <div class="rounded-lg bg-emerald-500/10 p-2">
+                                        <span class="text-[11px] text-emerald-800 dark:text-emerald-300 block">Present</span>
+                                        <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 block">{{ todayAttendance.present }}</span>
                                     </div>
-                                    <div class="rounded-lg bg-rose-500/10 p-2.5">
-                                        <span class="text-xs text-rose-800 dark:text-rose-300 block">Absent</span>
-                                        <span class="text-xl font-bold text-rose-600 dark:text-rose-400 mt-1 block">{{ todayAttendance.absent }}</span>
+                                    <div class="rounded-lg bg-rose-500/10 p-2">
+                                        <span class="text-[11px] text-rose-800 dark:text-rose-300 block">Absent</span>
+                                        <span class="text-lg font-bold text-rose-600 dark:text-rose-400 mt-0.5 block">{{ todayAttendance.absent }}</span>
                                     </div>
-                                    <div class="rounded-lg bg-amber-500/10 p-2.5">
-                                        <span class="text-xs text-amber-800 dark:text-amber-300 block">Tardy</span>
-                                        <span class="text-xl font-bold text-amber-600 dark:text-amber-400 mt-1 block">{{ todayAttendance.tardy }}</span>
+                                    <div class="rounded-lg bg-amber-500/10 p-2">
+                                        <span class="text-[11px] text-amber-800 dark:text-amber-300 block">Tardy</span>
+                                        <span class="text-lg font-bold text-amber-600 dark:text-amber-400 mt-0.5 block">{{ todayAttendance.tardy }}</span>
                                     </div>
-                                    <div class="rounded-lg bg-blue-500/10 p-2.5">
-                                        <span class="text-xs text-blue-800 dark:text-blue-300 block">Excused</span>
-                                        <span class="text-xl font-bold text-blue-600 dark:text-blue-400 mt-1 block">{{ todayAttendance.excused }}</span>
+                                    <div class="rounded-lg bg-blue-500/10 p-2">
+                                        <span class="text-[11px] text-blue-800 dark:text-blue-300 block">Excused</span>
+                                        <span class="text-lg font-bold text-blue-600 dark:text-blue-400 mt-0.5 block">{{ todayAttendance.excused }}</span>
                                     </div>
                                 </div>
                                 <div class="text-right">
@@ -171,30 +200,72 @@ defineProps<{
                         <CardHeader class="pb-3 border-b border-border bg-muted/20">
                             <CardTitle class="text-base font-bold flex items-center gap-2">
                                 <BookOpen class="h-4 w-4 text-primary" />
-                                DepEd Curriculum Subjects
+                                DepEd Curriculum
                             </CardTitle>
                             <CardDescription>
                                 {{ section.grade_level.name }} Learning Areas
                             </CardDescription>
                         </CardHeader>
-                        <CardContent class="p-6">
-                            <div class="flex flex-wrap gap-1.5">
+                        <CardContent class="p-5">
+                            <div class="flex flex-wrap gap-1 max-h-[110px] overflow-y-auto">
                                 <span
                                     v-for="subj in section.grade_level.subjects"
                                     :key="subj.id"
-                                    class="rounded-md border border-border bg-muted/30 px-2.5 py-1 text-xs font-medium text-foreground"
+                                    class="rounded-md border border-border bg-muted/30 px-2 py-0.5 text-xs font-medium text-foreground"
                                 >
                                     {{ subj.name }}
                                 </span>
                             </div>
-                            <div class="mt-6 pt-4 border-t border-border flex items-center justify-between">
-                                <span class="text-xs text-muted-foreground">Passing Grade: <strong class="text-foreground">75</strong></span>
+                            <div class="mt-4 pt-3 border-t border-border flex items-center justify-between">
+                                <span class="text-xs text-muted-foreground">Passing: <strong>75</strong></span>
                                 <Link href="/teacher/grades">
                                     <Button size="sm" class="gap-1.5">
                                         <TableProperties class="h-4 w-4" />
-                                        Open Grade Matrix
+                                        Grade Matrix
                                     </Button>
                                 </Link>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Upcoming Calendar Activities -->
+                    <Card class="rounded-xl border border-border/70 shadow-sm overflow-hidden flex flex-col justify-between">
+                        <CardHeader class="pb-3 border-b border-border bg-muted/20">
+                            <div class="flex items-center justify-between">
+                                <CardTitle class="text-base font-bold flex items-center gap-2">
+                                    <CalendarDays class="h-4 w-4 text-primary" />
+                                    Upcoming Activities
+                                </CardTitle>
+                                <Link href="/teacher/calendar" class="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                                    Calendar
+                                    <ArrowRight class="h-3 w-3" />
+                                </Link>
+                            </div>
+                        </CardHeader>
+                        <CardContent class="p-0">
+                            <div v-if="!upcomingEvents || upcomingEvents.length === 0" class="p-5 text-center text-xs text-muted-foreground">
+                                No upcoming activities scheduled.
+                            </div>
+                            <div v-else class="divide-y divide-border">
+                                <div
+                                    v-for="event in upcomingEvents.slice(0, 4)"
+                                    :key="event.id"
+                                    class="p-3 hover:bg-muted/30 transition-colors flex items-start justify-between gap-2"
+                                >
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="h-2 w-2 rounded-full shrink-0" :class="getCategoryDot(event.color)" />
+                                            <h4 class="text-xs font-bold text-foreground truncate">{{ event.title }}</h4>
+                                        </div>
+                                        <p class="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                                            <Clock class="h-3 w-3" />
+                                            {{ event.start_date }}
+                                        </p>
+                                    </div>
+                                    <Badge variant="secondary" class="text-[10px] shrink-0">
+                                        {{ event.category_label }}
+                                    </Badge>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>

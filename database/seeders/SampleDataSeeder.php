@@ -3,8 +3,10 @@
 namespace Database\Seeders;
 
 use App\Actions\Grades\EncodeGrade;
+use App\Enums\EventCategory;
 use App\Enums\UserRole;
 use App\Models\AttendanceRecord;
+use App\Models\CalendarEvent;
 use App\Models\GradeLevel;
 use App\Models\SchoolYear;
 use App\Models\Section;
@@ -12,6 +14,7 @@ use App\Models\StudentProfile;
 use App\Models\TeacherProfile;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 
 class SampleDataSeeder extends Seeder
@@ -30,6 +33,8 @@ class SampleDataSeeder extends Seeder
                 'is_active' => true,
             ]);
         }
+
+        $admin = User::where('role', UserRole::Admin)->first() ?? User::factory()->admin()->create();
 
         $grade1 = GradeLevel::where('order', 1)->first() ?? GradeLevel::create(['name' => 'Grade 1', 'order' => 1]);
 
@@ -119,16 +124,92 @@ class SampleDataSeeder extends Seeder
         ];
 
         foreach ($dates as $date => $info) {
-            AttendanceRecord::updateOrCreate(
-                [
-                    'student_id' => $studentProfile->id,
-                    'date' => $date,
-                ],
-                [
+            $record = AttendanceRecord::where('student_id', $studentProfile->id)
+                ->whereDate('date', $date)
+                ->first();
+
+            if ($record) {
+                $record->update([
                     'section_id' => $section->id,
                     'status' => $info['status'],
                     'remarks' => $info['remarks'],
                     'encoded_by' => $teacherUser->id,
+                ]);
+            } else {
+                AttendanceRecord::create([
+                    'student_id' => $studentProfile->id,
+                    'date' => $date,
+                    'section_id' => $section->id,
+                    'status' => $info['status'],
+                    'remarks' => $info['remarks'],
+                    'encoded_by' => $teacherUser->id,
+                ]);
+            }
+        }
+
+        // 6. Create sample calendar events
+        $today = Carbon::today();
+        $sampleEvents = [
+            [
+                'title' => 'First Quarter Periodic Examinations',
+                'description' => 'DepEd mandatory evaluation across all Grade 1 to 6 learning areas.',
+                'category' => EventCategory::Exam,
+                'start_date' => $today->copy()->addDays(3)->toDateString(),
+                'end_date' => $today->copy()->addDays(5)->toDateString(),
+                'section_id' => null,
+                'created_by' => $admin->id,
+            ],
+            [
+                'title' => 'National Heroes Day (Special Non-Working Holiday)',
+                'description' => 'No synchronous or asynchronous classes.',
+                'category' => EventCategory::Holiday,
+                'start_date' => $today->copy()->addDays(8)->toDateString(),
+                'end_date' => null,
+                'section_id' => null,
+                'created_by' => $admin->id,
+            ],
+            [
+                'title' => 'School-wide Nutrition Month Culminating Program',
+                'description' => 'Healthy cooking demo and poster making contest at the central school stage.',
+                'category' => EventCategory::SchoolEvent,
+                'start_date' => $today->copy()->addDays(12)->toDateString(),
+                'end_date' => null,
+                'section_id' => null,
+                'created_by' => $admin->id,
+            ],
+            [
+                'title' => 'World Teachers Day Celebration',
+                'description' => 'DepEd tribute program honoring elementary faculty.',
+                'category' => EventCategory::DepedActivity,
+                'start_date' => $today->copy()->addDays(18)->toDateString(),
+                'end_date' => null,
+                'section_id' => null,
+                'created_by' => $admin->id,
+            ],
+            [
+                'title' => 'Science Chapter 1 Practical Assessment',
+                'description' => 'Bring plant specimen and art materials for homeroom portfolio.',
+                'category' => EventCategory::SectionEvent,
+                'start_date' => $today->copy()->addDays(4)->toDateString(),
+                'end_date' => null,
+                'section_id' => $section->id,
+                'created_by' => $teacherUser->id,
+            ],
+        ];
+
+        foreach ($sampleEvents as $ev) {
+            CalendarEvent::updateOrCreate(
+                [
+                    'school_year_id' => $activeSy->id,
+                    'title' => $ev['title'],
+                ],
+                [
+                    'description' => $ev['description'],
+                    'category' => $ev['category'],
+                    'start_date' => $ev['start_date'],
+                    'end_date' => $ev['end_date'],
+                    'section_id' => $ev['section_id'],
+                    'created_by' => $ev['created_by'],
                 ]
             );
         }

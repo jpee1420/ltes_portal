@@ -2,7 +2,8 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, GraduationCap, School, Calendar, UserPlus, FolderTree, ArrowRight, ShieldCheck } from '@lucide/vue';
+import { Badge } from '@/components/ui/badge';
+import { Users, GraduationCap, School, Calendar, UserPlus, FolderTree, ArrowRight, ShieldCheck, CalendarDays, Clock } from '@lucide/vue';
 
 defineProps<{
     metrics: {
@@ -26,7 +27,29 @@ defineProps<{
         grade_level: { name: string };
         adviser?: { name: string; credential: string } | null;
     }>;
+    upcomingEvents?: Array<{
+        id: number;
+        title: string;
+        category: string;
+        category_label: string;
+        color: string;
+        start_date: string;
+        end_date: string | null;
+        is_school_wide: boolean;
+        section_name: string | null;
+    }>;
 }>();
+
+function getCategoryDot(color: string) {
+    switch (color) {
+        case 'red': return 'bg-rose-500';
+        case 'amber': return 'bg-amber-500';
+        case 'blue': return 'bg-blue-500';
+        case 'purple': return 'bg-purple-500';
+        case 'emerald': return 'bg-emerald-500';
+        default: return 'bg-primary';
+    }
+}
 </script>
 
 <template>
@@ -53,6 +76,12 @@ defineProps<{
 
                 <!-- Quick Action Buttons -->
                 <div class="flex flex-wrap items-center gap-2">
+                    <Link href="/admin/calendar">
+                        <Button size="sm" variant="outline" class="gap-1.5">
+                            <CalendarDays class="h-4 w-4" />
+                            School Calendar
+                        </Button>
+                    </Link>
                     <Link href="/admin/users/students/create">
                         <Button size="sm" class="gap-1.5 shadow-sm">
                             <UserPlus class="h-4 w-4" />
@@ -123,9 +152,9 @@ defineProps<{
                 </Card>
             </div>
 
-            <!-- Main Content Split -->
+            <!-- Main Content Split (3 Columns) -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Sections & Advisers -->
+                <!-- Sections & Advisers (Span 2) -->
                 <div class="lg:col-span-2 space-y-4">
                     <div class="flex items-center justify-between">
                         <h2 class="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -161,40 +190,87 @@ defineProps<{
                     </div>
                 </div>
 
-                <!-- Recent Learners -->
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
-                            <Users class="h-5 w-5 text-primary" />
-                            Recently Added Learners
-                        </h2>
-                        <Link href="/admin/users" class="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
-                            Directory
-                            <ArrowRight class="h-3 w-3" />
-                        </Link>
-                    </div>
+                <!-- Right Column: Upcoming Events + Recent Learners -->
+                <div class="space-y-6">
+                    <!-- Upcoming Calendar Events -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
+                                <CalendarDays class="h-5 w-5 text-primary" />
+                                Upcoming Events
+                            </h2>
+                            <Link href="/admin/calendar" class="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                                Calendar
+                                <ArrowRight class="h-3 w-3" />
+                            </Link>
+                        </div>
 
-                    <Card class="rounded-xl border border-border/70 shadow-sm overflow-hidden">
-                        <CardContent class="p-0">
-                            <div class="divide-y divide-border">
-                                <div
-                                    v-for="student in recentStudents"
-                                    :key="student.id"
-                                    class="p-3.5 hover:bg-muted/30 transition-colors flex items-center justify-between"
-                                >
-                                    <div>
-                                        <h4 class="text-sm font-semibold text-foreground">{{ student.user.name }}</h4>
-                                        <p class="text-xs font-mono text-muted-foreground">LRN: {{ student.lrn }}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="text-xs font-medium text-muted-foreground">
-                                            {{ student.section ? `${student.section.grade_level.name} - ${student.section.name}` : 'Unassigned' }}
-                                        </span>
+                        <Card class="rounded-xl border border-border/70 shadow-sm overflow-hidden">
+                            <CardContent class="p-0">
+                                <div v-if="!upcomingEvents || upcomingEvents.length === 0" class="p-4 text-center text-xs text-muted-foreground">
+                                    No upcoming events scheduled.
+                                </div>
+                                <div v-else class="divide-y divide-border">
+                                    <div
+                                        v-for="event in upcomingEvents"
+                                        :key="event.id"
+                                        class="p-3.5 hover:bg-muted/30 transition-colors flex items-start justify-between gap-2"
+                                    >
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="h-2 w-2 rounded-full shrink-0" :class="getCategoryDot(event.color)" />
+                                                <h4 class="text-xs font-bold text-foreground truncate">{{ event.title }}</h4>
+                                            </div>
+                                            <p class="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                                                <Clock class="h-3 w-3" />
+                                                {{ event.start_date }}
+                                                <span v-if="event.end_date">&rarr; {{ event.end_date }}</span>
+                                            </p>
+                                        </div>
+                                        <Badge variant="secondary" class="text-[10px] shrink-0">
+                                            {{ event.category_label }}
+                                        </Badge>
                                     </div>
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <!-- Recent Learners -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
+                                <Users class="h-5 w-5 text-primary" />
+                                Recently Added Learners
+                            </h2>
+                            <Link href="/admin/users" class="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                                Directory
+                                <ArrowRight class="h-3 w-3" />
+                            </Link>
+                        </div>
+
+                        <Card class="rounded-xl border border-border/70 shadow-sm overflow-hidden">
+                            <CardContent class="p-0">
+                                <div class="divide-y divide-border">
+                                    <div
+                                        v-for="student in recentStudents"
+                                        :key="student.id"
+                                        class="p-3.5 hover:bg-muted/30 transition-colors flex items-center justify-between"
+                                    >
+                                        <div>
+                                            <h4 class="text-sm font-semibold text-foreground">{{ student.user.name }}</h4>
+                                            <p class="text-xs font-mono text-muted-foreground">LRN: {{ student.lrn }}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="text-xs font-medium text-muted-foreground">
+                                                {{ student.section ? `${student.section.grade_level.name} - ${student.section.name}` : 'Unassigned' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
         </div>

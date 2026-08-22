@@ -48,6 +48,11 @@ const mainNavItems = computed<NavItem[]>(() => {
                 icon: LayoutGrid,
             },
             {
+                title: 'School Calendar',
+                href: '/admin/calendar',
+                icon: CalendarDays,
+            },
+            {
                 title: 'User Management',
                 href: '/admin/users',
                 icon: Users,
@@ -73,6 +78,11 @@ const mainNavItems = computed<NavItem[]>(() => {
                 icon: LayoutGrid,
             },
             {
+                title: 'School Calendar',
+                href: '/teacher/calendar',
+                icon: Calendar,
+            },
+            {
                 title: 'Class Roster',
                 href: '/teacher/roster',
                 icon: Users,
@@ -96,6 +106,11 @@ const mainNavItems = computed<NavItem[]>(() => {
                 title: 'Dashboard',
                 href: '/student/dashboard',
                 icon: LayoutGrid,
+            },
+            {
+                title: 'School Calendar',
+                href: '/student/calendar',
+                icon: CalendarDays,
             },
             {
                 title: 'Report Card',

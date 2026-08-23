@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useInitials } from '@/composables/useInitials';
+import { formatDate } from '@/lib/utils';
 import { Users, GraduationCap, TableProperties, CalendarDays } from '@lucide/vue';
 
 const { getInitials } = useInitials();
@@ -127,7 +128,7 @@ defineProps<{
                                                 {{ student.gender === 'M' ? 'Male' : 'Female' }}
                                             </span>
                                         </td>
-                                        <td class="px-6 py-4 text-xs text-muted-foreground">{{ student.birth_date }}</td>
+                                        <td class="px-6 py-4 text-xs text-muted-foreground">{{ formatDate(student.birth_date) }}</td>
                                     </tr>
                                 </tbody>
                             </table>

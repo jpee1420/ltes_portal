@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Models\Section;
 use App\Models\StudentProfile;
 use App\Models\TeacherProfile;
 use App\Models\User;
@@ -205,4 +206,93 @@ test('admin can reset a user password to their formula default password', functi
     $student->refresh();
     // 11142015 + 9012 = 111420159012
     expect(Hash::check('111420159012', $student->password))->toBeTrue();
+});
+
+test('admin can update student details including name, birth date, gender, and section', function () {
+    $admin = User::factory()->admin()->create();
+    $section = Section::factory()->create();
+    $student = User::factory()->student()->create(['name' => 'Original Name', 'credential' => '100010001000']);
+    $profile = StudentProfile::factory()->create([
+        'user_id' => $student->id,
+        'lrn' => '100010001000',
+        'first_name' => 'Original',
+        'last_name' => 'Name',
+        'middle_name' => null,
+        'gender' => 'M',
+        'birth_date' => '2015-01-01',
+        'section_id' => null,
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->put(route('admin.users.update', $student), [
+            'first_name' => 'Juan',
+            'last_name' => 'Luna',
+            'middle_name' => 'Novicio',
+            'gender' => 'Male',
+            'birth_date' => '2015-10-23',
+            'section_id' => $section->id,
+        ]);
+
+    $response->assertRedirect();
+
+    $student->refresh();
+    $profile->refresh();
+
+    expect($student->name)->toBe('Juan Luna')
+        ->and($profile->first_name)->toBe('Juan')
+        ->and($profile->last_name)->toBe('Luna')
+        ->and($profile->middle_name)->toBe('Novicio')
+        ->and($profile->gender)->toBe('M')
+        ->and($profile->birth_date->format('Y-m-d'))->toBe('2015-10-23')
+        ->and($profile->section_id)->toBe($section->id);
+});
+
+test('admin can update staff details including name, email, and birth date', function () {
+    $admin = User::factory()->admin()->create();
+    $teacher = User::factory()->teacher()->create([
+        'name' => 'Original Teacher',
+        'credential' => '3000001',
+        'email' => 'old.email@ltes.edu.ph',
+    ]);
+    $profile = TeacherProfile::factory()->create([
+        'user_id' => $teacher->id,
+        'employee_no' => '3000001',
+        'first_name' => 'Original',
+        'last_name' => 'Teacher',
+        'birth_date' => '1980-01-01',
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->put(route('admin.users.update', $teacher), [
+            'first_name' => 'Gabriela',
+            'last_name' => 'Silang',
+            'middle_name' => 'Cariño',
+            'email' => 'gabriela.silang@ltes.edu.ph',
+            'birth_date' => '1982-03-19',
+        ]);
+
+    $response->assertRedirect();
+
+    $teacher->refresh();
+    $profile->refresh();
+
+    expect($teacher->name)->toBe('Gabriela Silang')
+        ->and($teacher->email)->toBe('gabriela.silang@ltes.edu.ph')
+        ->and($profile->first_name)->toBe('Gabriela')
+        ->and($profile->last_name)->toBe('Silang')
+        ->and($profile->middle_name)->toBe('Cariño')
+        ->and($profile->birth_date?->format('Y-m-d'))->toBe('1982-03-19');
+});
+
+test('non-admin cannot update user details', function () {
+    $teacher = User::factory()->teacher()->create();
+    $student = User::factory()->student()->create();
+
+    $response = $this->actingAs($teacher)
+        ->put(route('admin.users.update', $student), [
+            'first_name' => 'Hacker',
+            'last_name' => 'Attempt',
+        ]);
+
+    $response->assertForbidden();
 });

@@ -22,6 +22,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/users/staff', [UserManagementController::class, 'storeStaff'])->name('users.staff.store');
     Route::post('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
     Route::post('/users/{user}/photo', [UserManagementController::class, 'uploadPhoto'])->name('users.photo');
+    Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
 
     // School Year Management
     Route::get('/school-years', [SchoolYearController::class, 'index'])->name('school-years.index');

@@ -6,11 +6,13 @@ use App\Actions\UserManagement\BulkImportStudents;
 use App\Actions\UserManagement\CreateStaffAccount;
 use App\Actions\UserManagement\CreateStudentAccount;
 use App\Actions\UserManagement\ResetUserPassword;
+use App\Actions\UserManagement\UpdateUserAccount;
 use App\Actions\UserManagement\UploadUserPhoto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ImportStudentsRequest;
 use App\Http\Requests\Admin\StoreStaffRequest;
 use App\Http\Requests\Admin\StoreStudentRequest;
+use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\SchoolYear;
 use App\Models\Section;
 use App\Models\User;
@@ -30,7 +32,7 @@ class UserManagementController extends Controller
         $search = $request->query('search');
         $role = $request->query('role');
 
-        $users = User::with(['studentProfile', 'teacherProfile'])
+        $users = User::with(['studentProfile.section.gradeLevel', 'teacherProfile'])
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -45,8 +47,16 @@ class UserManagementController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        $sections = Section::with('gradeLevel')
+            ->get()
+            ->map(fn ($s) => [
+                'id' => $s->id,
+                'name' => "{$s->gradeLevel?->name} - {$s->name}",
+            ]);
+
         return Inertia::render('admin/users/Index', [
             'users' => $users,
+            'sections' => $sections,
             'filters' => [
                 'search' => $search,
                 'role' => $role,
@@ -169,5 +179,15 @@ class UserManagementController extends Controller
         $action->handle($user, $request->file('photo'));
 
         return back()->with('success', "Photo uploaded successfully for {$user->name}.");
+    }
+
+    /**
+     * Update the specified user and associated profile details.
+     */
+    public function update(UpdateUserRequest $request, User $user, UpdateUserAccount $action): RedirectResponse
+    {
+        $action->handle($user, $request->validated());
+
+        return back()->with('success', "Profile details for {$user->name} updated successfully.");
     }
 }

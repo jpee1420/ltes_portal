@@ -2,6 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatDate } from '@/lib/utils';
 import { Calendar, Plus, CheckCircle2, Circle } from '@lucide/vue';
 
 defineProps<{
@@ -88,7 +89,7 @@ const activateYear = (sy: { id: number; label: string }) => {
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-xs text-muted-foreground">
-                                        {{ sy.start_date }} to {{ sy.end_date }}
+                                        {{ formatDate(sy.start_date) }} to {{ formatDate(sy.end_date) }}
                                     </td>
                                     <td class="px-6 py-4 text-center text-xs font-medium text-foreground">
                                         {{ sy.sections_count }} sections

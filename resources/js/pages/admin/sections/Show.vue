@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useInitials } from '@/composables/useInitials';
+import { formatDate } from '@/lib/utils';
 import { ArrowLeft, UserPlus, UserMinus, Users, GraduationCap, School, AlertTriangle, CheckCircle2 } from '@lucide/vue';
 
 const { getInitials } = useInitials();
@@ -216,7 +217,7 @@ const removeStudent = (student: { id: number; user: { name: string } }) => {
                                     </td>
                                     <td class="px-6 py-3.5 font-mono text-xs text-muted-foreground">{{ student.lrn }}</td>
                                     <td class="px-6 py-3.5 text-xs">{{ student.gender === 'M' ? 'Male' : 'Female' }}</td>
-                                    <td class="px-6 py-3.5 text-xs text-muted-foreground">{{ student.birth_date }}</td>
+                                    <td class="px-6 py-3.5 text-xs text-muted-foreground">{{ formatDate(student.birth_date) }}</td>
                                     <td class="px-6 py-3.5 text-right">
                                         <button
                                             @click="removeStudent(student)"

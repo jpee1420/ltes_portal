@@ -1,25 +1,13 @@
 <?php
 
-use Laravel\Fortify\Features;
+test('registration is disabled and returns 404', function () {
+    $response = $this->get('/register');
 
-beforeEach(function () {
-    $this->skipUnlessFortifyHas(Features::registration());
+    $response->assertNotFound();
 });
 
-test('registration screen can be rendered', function () {
-    $response = $this->get(route('register'));
+test('default root page redirects to login', function () {
+    $response = $this->get('/');
 
-    $response->assertOk();
-});
-
-test('new users can register', function () {
-    $response = $this->post(route('register.store'), [
-        'name' => 'Test User',
-        'email' => 'test@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
-    ]);
-
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('login'));
 });

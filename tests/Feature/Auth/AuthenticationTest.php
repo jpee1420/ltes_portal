@@ -31,12 +31,12 @@ test('users can not authenticate with invalid password', function () {
     $this->assertGuest();
 });
 
-test('users can logout', function () {
+test('users can logout and redirect to login', function () {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->post(route('logout'));
 
-    $response->assertRedirect(route('home'));
+    $response->assertRedirect(route('login'));
 
     $this->assertGuest();
 });

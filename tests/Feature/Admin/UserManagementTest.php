@@ -18,7 +18,7 @@ test('admin can view the create student page', function () {
         ->assertOk();
 });
 
-test('admin can create a student account and profile with LRN as default password', function () {
+test('admin can create a student account and profile with birthday and LRN formula as default password', function () {
     $admin = User::factory()->admin()->create();
 
     $studentData = [
@@ -39,7 +39,8 @@ test('admin can create a student account and profile with LRN as default passwor
     expect($user)->not->toBeNull()
         ->and($user->role)->toBe(UserRole::Student)
         ->and($user->name)->toBe('Jose Rizal')
-        ->and(Hash::check('123456789012', $user->password))->toBeTrue();
+        // Expected: 06192015 + 9012 = 061920159012
+        ->and(Hash::check('061920159012', $user->password))->toBeTrue();
 
     $profile = StudentProfile::where('lrn', '123456789012')->first();
     expect($profile)->not->toBeNull()
@@ -103,7 +104,7 @@ test('admin can view the create staff page', function () {
         ->assertOk();
 });
 
-test('admin can create a teacher staff account with employee number as default password', function () {
+test('admin can create a teacher staff account with birthday formula or employee number default password', function () {
     $admin = User::factory()->admin()->create();
 
     $staffData = [
@@ -112,6 +113,7 @@ test('admin can create a teacher staff account with employee number as default p
         'first_name' => 'Maria',
         'last_name' => 'Santos',
         'middle_name' => 'Clara',
+        'birth_date' => '1985-03-25',
         'email' => 'maria.santos@ltes.edu.ph',
     ];
 
@@ -125,13 +127,15 @@ test('admin can create a teacher staff account with employee number as default p
         ->and($user->role)->toBe(UserRole::Teacher)
         ->and($user->name)->toBe('Maria Santos')
         ->and($user->email)->toBe('maria.santos@ltes.edu.ph')
-        ->and(Hash::check('2000001', $user->password))->toBeTrue();
+        // 03251985 + 0001 = 032519850001
+        ->and(Hash::check('032519850001', $user->password))->toBeTrue();
 
     $profile = TeacherProfile::where('employee_no', '2000001')->first();
     expect($profile)->not->toBeNull()
         ->and($profile->user_id)->toBe($user->id)
         ->and($profile->first_name)->toBe('Maria')
-        ->and($profile->last_name)->toBe('Santos');
+        ->and($profile->last_name)->toBe('Santos')
+        ->and($profile->birth_date?->format('Y-m-d'))->toBe('1985-03-25');
 });
 
 test('staff creation validates employee number must be exactly 7 digits', function () {
@@ -179,14 +183,19 @@ test('admin can view user list with search filter', function () {
         );
 });
 
-test('admin can reset a user password to their credential number', function () {
+test('admin can reset a user password to their formula default password', function () {
     $admin = User::factory()->admin()->create();
     $student = User::factory()->student()->create([
         'credential' => '123456789012',
         'password' => 'some-changed-password',
     ]);
+    StudentProfile::factory()->create([
+        'user_id' => $student->id,
+        'lrn' => '123456789012',
+        'birth_date' => '2015-11-14',
+    ]);
 
-    expect(Hash::check('123456789012', $student->password))->toBeFalse();
+    expect(Hash::check('111420159012', $student->password))->toBeFalse();
 
     $response = $this->actingAs($admin)
         ->post(route('admin.users.reset-password', $student));
@@ -194,5 +203,6 @@ test('admin can reset a user password to their credential number', function () {
     $response->assertRedirect();
 
     $student->refresh();
-    expect(Hash::check('123456789012', $student->password))->toBeTrue();
+    // 11142015 + 9012 = 111420159012
+    expect(Hash::check('111420159012', $student->password))->toBeTrue();
 });

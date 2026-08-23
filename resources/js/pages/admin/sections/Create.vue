@@ -21,6 +21,7 @@ const form = useForm({
     grade_level_id: props.gradeLevels[0]?.id || '',
     name: '',
     adviser_id: '' as number | string | null,
+    max_students: '' as number | string,
 });
 
 const submit = () => {
@@ -45,7 +46,7 @@ const submit = () => {
                 </Link>
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-foreground">Create New Section</h1>
-                    <p class="text-sm text-muted-foreground">Define a classroom section and assign its homeroom adviser.</p>
+                    <p class="text-sm text-muted-foreground">Define a classroom section, maximum student capacity, and assign its homeroom adviser.</p>
                 </div>
             </div>
 
@@ -112,13 +113,29 @@ const submit = () => {
                             </div>
 
                             <div class="space-y-2">
+                                <Label for="max_students" class="text-sm font-medium">
+                                    Maximum Student Capacity (Optional)
+                                </Label>
+                                <Input
+                                    id="max_students"
+                                    v-model="form.max_students"
+                                    type="number"
+                                    min="1"
+                                    max="100"
+                                    placeholder="e.g. 35 (leave blank for unlimited)"
+                                />
+                                <p class="text-xs text-muted-foreground">When enrolled count reaches this limit, a capacity warning indicator is displayed.</p>
+                                <InputError :message="form.errors.max_students" />
+                            </div>
+
+                            <div class="space-y-2">
                                 <Label for="adviser_id" class="text-sm font-medium">Class Adviser (Homeroom Teacher)</Label>
                                 <select
                                     id="adviser_id"
                                     v-model="form.adviser_id"
                                     class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                 >
-                                    <option :value="null">-- Unassigned --</option>
+                                    <option :value="''">-- Unassigned --</option>
                                     <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
                                         {{ teacher.name }} (ID: {{ teacher.credential }})
                                     </option>

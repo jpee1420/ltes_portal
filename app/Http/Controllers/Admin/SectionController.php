@@ -29,7 +29,13 @@ class SectionController extends Controller
         $sections = Section::with(['schoolYear', 'gradeLevel', 'adviser'])
             ->withCount('studentProfiles')
             ->latest()
-            ->paginate(15);
+            ->paginate(15)
+            ->through(function ($sec) {
+                $sec->enrolled_count = $sec->student_profiles_count;
+                $sec->is_at_capacity = $sec->max_students !== null && $sec->student_profiles_count >= $sec->max_students;
+
+                return $sec;
+            });
 
         return Inertia::render('admin/sections/Index', [
             'sections' => $sections,
@@ -47,6 +53,9 @@ class SectionController extends Controller
             'adviser',
             'studentProfiles.user',
         ]);
+
+        $section->enrolled_count = $section->studentProfiles->count();
+        $section->is_at_capacity = $section->isAtCapacity();
 
         $unassignedStudents = StudentProfile::with('user')
             ->whereNull('section_id')

@@ -11,6 +11,7 @@ import {
     CalendarCheck,
     FileText,
     School,
+    ClipboardList,
 } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -66,6 +67,11 @@ const mainNavItems = computed<NavItem[]>(() => {
                 title: 'Sections & Roster',
                 href: '/admin/sections',
                 icon: FolderTree,
+            },
+            {
+                title: 'Audit Log',
+                href: '/admin/audit-log',
+                icon: ClipboardList,
             },
         ];
     }

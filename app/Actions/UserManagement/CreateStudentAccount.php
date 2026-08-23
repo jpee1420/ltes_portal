@@ -5,6 +5,8 @@ namespace App\Actions\UserManagement;
 use App\Enums\UserRole;
 use App\Models\StudentProfile;
 use App\Models\User;
+use App\Support\AuditLogger;
+use App\Support\DefaultPasswordGenerator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -18,14 +20,16 @@ class CreateStudentAccount
     public function handle(array $data): StudentProfile
     {
         return DB::transaction(function () use ($data) {
+            $defaultPassword = DefaultPasswordGenerator::forStudent($data['birth_date'], $data['lrn']);
+
             $user = User::create([
                 'name' => trim("{$data['first_name']} {$data['last_name']}"),
                 'role' => UserRole::Student,
                 'credential' => $data['lrn'],
-                'password' => Hash::make($data['lrn']),
+                'password' => Hash::make($defaultPassword),
             ]);
 
-            return StudentProfile::create([
+            $profile = StudentProfile::create([
                 'user_id' => $user->id,
                 'lrn' => $data['lrn'],
                 'first_name' => $data['first_name'],
@@ -35,6 +39,10 @@ class CreateStudentAccount
                 'birth_date' => $data['birth_date'],
                 'section_id' => $data['section_id'] ?? null,
             ]);
+
+            AuditLogger::log('student.created', "Created student account for {$user->name} (LRN: {$data['lrn']})", $user);
+
+            return $profile;
         });
     }
 }

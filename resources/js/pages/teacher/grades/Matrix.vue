@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
-import { TableProperties, CheckCircle, AlertTriangle, Save, GraduationCap } from '@lucide/vue';
+import { TableProperties, CheckCircle, AlertTriangle, Save, GraduationCap, FileEdit, CheckCheck } from '@lucide/vue';
 
 const props = defineProps<{
     section: {
@@ -33,18 +33,72 @@ const props = defineProps<{
 
 const currentQuarter = ref(props.selectedQuarter || 'Q1');
 const currentSubjectId = ref(props.selectedSubject?.id || props.subjects[0]?.id || '');
+const draftRestoredNotice = ref(false);
+const hasUnsavedDraft = ref(false);
 
 // Local editable grades map: studentId -> score
 const scores = reactive<Record<number, number | string>>({});
 
-// Initialize scores from props
+const getDraftKey = () => {
+    if (!props.section || !currentSubjectId.value) return null;
+    return `ltes_grade_draft_${props.section.id}_${currentSubjectId.value}_${currentQuarter.value}`;
+};
+
+// Initialize scores from props or localStorage draft
 const initScores = () => {
     props.students.forEach((student) => {
         const val = student.grades[currentQuarter.value as keyof typeof student.grades];
         scores[student.id] = val !== null && val !== undefined ? val : '';
     });
+
+    const key = getDraftKey();
+    if (key && typeof window !== 'undefined') {
+        try {
+            const savedDraft = localStorage.getItem(key);
+            if (savedDraft) {
+                const parsed = JSON.parse(savedDraft);
+                let changed = false;
+                Object.keys(parsed).forEach((idStr) => {
+                    const id = Number(idStr);
+                    if (scores[id] !== undefined && parsed[id] !== '' && parsed[id] !== scores[id]) {
+                        scores[id] = parsed[id];
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    hasUnsavedDraft.value = true;
+                    draftRestoredNotice.value = true;
+                }
+            }
+        } catch {
+            // Ignore corrupted local storage
+        }
+    }
 };
+
 initScores();
+
+// Auto-save debounce watcher
+let draftTimeout: ReturnType<typeof setTimeout> | null = null;
+watch(
+    scores,
+    () => {
+        const key = getDraftKey();
+        if (!key || typeof window === 'undefined') return;
+
+        hasUnsavedDraft.value = true;
+
+        if (draftTimeout) clearTimeout(draftTimeout);
+        draftTimeout = setTimeout(() => {
+            try {
+                localStorage.setItem(key, JSON.stringify(scores));
+            } catch {
+                // Storage full or unavailable
+            }
+        }, 800);
+    },
+    { deep: true }
+);
 
 const onFilterChange = () => {
     router.get(
@@ -91,7 +145,12 @@ const saveGrades = () => {
     form.post('/teacher/grades', {
         preserveScroll: true,
         onSuccess: () => {
-            // Updated
+            const key = getDraftKey();
+            if (key && typeof window !== 'undefined') {
+                localStorage.removeItem(key);
+            }
+            hasUnsavedDraft.value = false;
+            draftRestoredNotice.value = false;
         },
     });
 };
@@ -134,13 +193,39 @@ const calculateAverage = (studentGrades: { Q1: number | null; Q2: number | null;
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-3">
+                        <span
+                            v-if="hasUnsavedDraft"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/70 text-xs font-semibold text-amber-800 dark:text-amber-300"
+                        >
+                            <FileEdit class="h-3.5 w-3.5 text-amber-600 animate-pulse" />
+                            <span>Unsaved Local Draft</span>
+                        </span>
+
                         <Button @click="saveGrades" :disabled="form.processing" class="gap-2 shadow-sm">
                             <Spinner v-if="form.processing" class="h-4 w-4" />
                             <Save v-else class="h-4 w-4" />
                             <span>{{ form.processing ? 'Saving...' : 'Save Quarterly Grades' }}</span>
                         </Button>
                     </div>
+                </div>
+
+                <!-- Draft Restored Toast -->
+                <div
+                    v-if="draftRestoredNotice"
+                    class="flex items-center justify-between p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-800 dark:text-emerald-300"
+                >
+                    <div class="flex items-center gap-2">
+                        <CheckCheck class="h-4 w-4 text-emerald-600 shrink-0" />
+                        <span>Restored previous unsaved draft scores for this subject and quarter.</span>
+                    </div>
+                    <button
+                        type="button"
+                        @click="draftRestoredNotice = false"
+                        class="text-xs font-semibold underline hover:opacity-75"
+                    >
+                        Dismiss
+                    </button>
                 </div>
 
                 <!-- Filters / Subject & Quarter selector -->
@@ -188,7 +273,7 @@ const calculateAverage = (studentGrades: { Q1: number | null; Q2: number | null;
                                 <span>{{ selectedSubject?.name || 'Subject' }} &mdash; {{ currentQuarter }}</span>
                             </CardTitle>
                             <CardDescription>
-                                Enter raw score (60 - 100). Scores below 75 are flagged as failing.
+                                Enter raw score (60 - 100). Auto-saves to your browser while typing.
                             </CardDescription>
                         </div>
                     </CardHeader>

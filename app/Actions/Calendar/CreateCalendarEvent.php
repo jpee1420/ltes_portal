@@ -8,6 +8,7 @@ use App\Models\CalendarEvent;
 use App\Models\SchoolYear;
 use App\Models\Section;
 use App\Models\User;
+use App\Support\AuditLogger;
 use Illuminate\Validation\ValidationException;
 
 class CreateCalendarEvent
@@ -73,7 +74,7 @@ class CreateCalendarEvent
             }
         }
 
-        return CalendarEvent::create([
+        $event = CalendarEvent::create([
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'category' => $category,
@@ -83,5 +84,9 @@ class CreateCalendarEvent
             'section_id' => $sectionId,
             'created_by' => $user->id,
         ]);
+
+        AuditLogger::log('calendar.event_created', "Created calendar event: {$event->title} ({$event->category->label()})", $event);
+
+        return $event;
     }
 }

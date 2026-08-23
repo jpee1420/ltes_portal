@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, UserPlus, UserMinus, Users, GraduationCap, School } from '@lucide/vue';
+import { ArrowLeft, UserPlus, UserMinus, Users, GraduationCap, School, AlertTriangle, CheckCircle2 } from '@lucide/vue';
 
 const props = defineProps<{
     section: {
         id: number;
         name: string;
+        max_students: number | null;
+        enrolled_count?: number;
+        is_at_capacity?: boolean;
         school_year: { label: string; is_active: boolean };
         grade_level: { name: string };
         adviser?: { name: string; credential: string } | null;
@@ -36,6 +39,14 @@ const selectedStudentId = ref<string | number>('');
 
 const assignForm = useForm({
     student_profile_id: '',
+});
+
+const enrolledCount = computed(() => props.section.student_profiles.length);
+const maxStudents = computed(() => props.section.max_students);
+const isFull = computed(() => maxStudents.value !== null && maxStudents.value > 0 && enrolledCount.value >= maxStudents.value);
+const occupancyPercent = computed(() => {
+    if (!maxStudents.value) return null;
+    return Math.min(100, Math.round((enrolledCount.value / maxStudents.value) * 100));
 });
 
 const enrollStudent = () => {
@@ -91,6 +102,36 @@ const removeStudent = (student: { id: number; user: { name: string } }) => {
                     </Link>
                 </div>
             </div>
+
+            <!-- Capacity Progress / Warning Bar -->
+            <Card v-if="maxStudents" class="rounded-xl border border-border/70 shadow-sm p-4">
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-medium text-foreground flex items-center gap-1.5">
+                            <Users class="h-4 w-4 text-primary" />
+                            Section Capacity Occupancy
+                        </span>
+                        <span :class="isFull ? 'font-bold text-amber-600 dark:text-amber-400' : 'font-medium text-muted-foreground'">
+                            {{ enrolledCount }} / {{ maxStudents }} Students ({{ occupancyPercent }}%)
+                        </span>
+                    </div>
+                    <div class="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                        <div
+                            class="h-2.5 rounded-full transition-all duration-300"
+                            :class="[
+                                isFull
+                                    ? 'bg-amber-500'
+                                    : 'bg-primary'
+                            ]"
+                            :style="{ width: `${occupancyPercent}%` }"
+                        />
+                    </div>
+                    <div v-if="isFull" class="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-300 font-medium pt-1">
+                        <AlertTriangle class="h-4 w-4 shrink-0 text-amber-600" />
+                        <span>This section has reached its maximum recommended capacity of {{ maxStudents }} learners. Administrators can still enroll additional learners if needed.</span>
+                    </div>
+                </div>
+            </Card>
 
             <!-- Enrollment Card -->
             <Card class="rounded-xl border border-border/70 shadow-sm">

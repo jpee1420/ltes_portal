@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2026-08-23
+
+### Added
+- **Birthday-Based Default Password Formula:**
+  - Standardized formula `MMDDYYYY + substr(credential, -4)` implemented in `DefaultPasswordGenerator`.
+  - Added nullable `birth_date` to `TeacherProfile` and staff creation form.
+  - Updated `CreateStudentAccount`, `CreateStaffAccount`, and `ResetUserPassword` actions.
+- **Audit Logging Subsystem & Activity Trail:**
+  - Append-only `audit_logs` schema tracking user authentication and operational events.
+  - Automatic authentication listeners registered in `AppServiceProvider` for `Login`, `Logout`, `OtherDeviceLogout`, and `Failed`.
+  - Application-level audit logging across user creation, password resets, calendar events, daily attendance, and quarterly grades.
+  - Dedicated Admin Audit Trail viewer (`admin/audit-log/Index.vue`) with search, filter badges, and pagination.
+- **Bulk Student CSV Import:**
+  - `BulkImportStudents` action supporting CSV uploads with UTF-8 BOM stripping, header normalization, and row-level validation.
+  - Duplicate LRN skip policy with real-time feedback report.
+  - Interactive CSV import page (`admin/users/Import.vue`) with drag-and-drop zone, downloadable sample CSV template, section target selector, and 3-tab results breakdown (Created, Duplicates Skipped, Validation Errors).
+- **Section Capacity Limits & Warnings:**
+  - Nullable `max_students` column added to `sections` table.
+  - Helper methods `enrolledCount()` and `isAtCapacity()` on `Section` model.
+  - Capacity progress meters and occupancy badges in Admin section list and roster views.
+- **Teacher Attendance Carry-Forward:**
+  - `GET /teacher/attendance/carry-forward` endpoint returning the most recently recorded attendance records for the adviser's section.
+  - Redesigned Daily Attendance UI with master "Select / Deselect All Present" checkbox, individual status toggles, and 1-click carry-forward button.
+- **Grade Matrix localStorage Auto-Save:**
+  - 800ms debounced local draft auto-saving in `Matrix.vue` keyed by section, subject, and quarter.
+  - Automatic draft restoration prompt upon page refresh with amber "● Unsaved Draft" indicator and auto-clearing upon successful server persistence.
+- **Documentation & Tests:**
+  - Architecture Decision Record `ADR-006` in `docs/decisions/0006-bulk-csv-import-audit-log-and-workflow-enhancements.md`.
+  - 21 new automated tests bringing the test suite to 127 passing tests (669 assertions).
+
+---
+
 ## [0.2.0] - 2026-08-23
 
 ### Added

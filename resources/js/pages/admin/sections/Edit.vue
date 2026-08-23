@@ -15,6 +15,7 @@ const props = defineProps<{
         school_year_id: number;
         grade_level_id: number;
         adviser_id: number | null;
+        max_students: number | null;
         school_year: { label: string; is_active: boolean };
         grade_level: { name: string };
         adviser?: { name: string } | null;
@@ -25,6 +26,7 @@ const props = defineProps<{
 const form = useForm({
     name: props.section.name,
     adviser_id: props.section.adviser_id ?? ('' as number | string | null),
+    max_students: props.section.max_students ?? ('' as number | string),
 });
 
 const submit = () => {
@@ -60,7 +62,7 @@ const submit = () => {
                         Modify Section Details
                     </CardTitle>
                     <CardDescription>
-                        Update section name or change assigned homeroom adviser.
+                        Update section name, maximum student capacity, or change assigned homeroom adviser.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -85,6 +87,22 @@ const submit = () => {
                                     autofocus
                                 />
                                 <InputError :message="form.errors.name" />
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="max_students" class="text-sm font-medium">
+                                    Maximum Student Capacity (Optional)
+                                </Label>
+                                <Input
+                                    id="max_students"
+                                    v-model="form.max_students"
+                                    type="number"
+                                    min="1"
+                                    max="100"
+                                    placeholder="e.g. 35 (leave blank for unlimited)"
+                                />
+                                <p class="text-xs text-muted-foreground">When enrolled count reaches this limit, a capacity warning indicator is displayed.</p>
+                                <InputError :message="form.errors.max_students" />
                             </div>
 
                             <div class="space-y-2">

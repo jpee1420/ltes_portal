@@ -6,6 +6,7 @@ use App\Enums\EventCategory;
 use App\Enums\UserRole;
 use App\Models\CalendarEvent;
 use App\Models\User;
+use App\Support\AuditLogger;
 use Illuminate\Validation\ValidationException;
 
 class UpdateCalendarEvent
@@ -60,6 +61,8 @@ class UpdateCalendarEvent
             'end_date' => array_key_exists('end_date', $data) ? $data['end_date'] : $event->end_date,
             'section_id' => $sectionId,
         ]);
+
+        AuditLogger::log('calendar.event_updated', "Updated calendar event: {$event->title}", $event);
 
         return $event->fresh();
     }

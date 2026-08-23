@@ -14,6 +14,7 @@ const form = useForm({
     first_name: '',
     middle_name: '',
     last_name: '',
+    birth_date: '',
     email: '',
 });
 
@@ -50,7 +51,7 @@ const submit = () => {
                         Staff Member Information
                     </CardTitle>
                     <CardDescription>
-                        Default portal password is the 7-digit Employee Number.
+                        Default portal password will be generated as <span class="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">MMDDYYYY + Last 4 of Employee Number</span> (or Employee Number if no birthday is set).
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -115,7 +116,7 @@ const submit = () => {
                                 <InputError :message="form.errors.middle_name" />
                             </div>
 
-                            <div class="sm:col-span-2 space-y-2">
+                            <div class="space-y-2">
                                 <Label for="last_name" class="text-sm font-medium">
                                     Last Name <span class="text-destructive">*</span>
                                 </Label>
@@ -127,6 +128,17 @@ const submit = () => {
                                     placeholder="e.g. Santos"
                                 />
                                 <InputError :message="form.errors.last_name" />
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="birth_date" class="text-sm font-medium">Date of Birth (Optional)</Label>
+                                <Input
+                                    id="birth_date"
+                                    v-model="form.birth_date"
+                                    type="date"
+                                    placeholder="YYYY-MM-DD"
+                                />
+                                <InputError :message="form.errors.birth_date" />
                             </div>
 
                             <div class="sm:col-span-2 space-y-2">

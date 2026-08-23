@@ -6,6 +6,7 @@ use App\Actions\Grades\BulkEncodeGrades;
 use App\Http\Controllers\Controller;
 use App\Models\Section;
 use App\Queries\Grades\GetSectionGradeMatrix;
+use App\Support\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -61,6 +62,16 @@ class GradeController extends Controller
         }, $request->input('grades'));
 
         $action->handle($grades);
+
+        $firstGrade = $grades[0] ?? null;
+        $quarter = $firstGrade['quarter'] ?? '';
+        $section = Section::where('adviser_id', $request->user()->id)->first();
+
+        AuditLogger::log(
+            'grades.saved',
+            "Saved {$quarter} grades for ".count($grades).' student records'.($section ? " in {$section->name}" : ''),
+            $section
+        );
 
         return back()->with('success', 'Grades saved successfully.');
     }

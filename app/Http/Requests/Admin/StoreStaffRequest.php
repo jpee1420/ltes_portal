@@ -27,6 +27,7 @@ class StoreStaffRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
+            'birth_date' => ['nullable', 'date'],
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
         ];
     }

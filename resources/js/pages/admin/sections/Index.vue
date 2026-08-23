@@ -2,7 +2,8 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FolderTree, Plus, Edit2, Users, School } from '@lucide/vue';
+import { Badge } from '@/components/ui/badge';
+import { FolderTree, Plus, Edit2, Users, School, AlertTriangle } from '@lucide/vue';
 
 defineProps<{
     sections: {
@@ -10,6 +11,9 @@ defineProps<{
             id: number;
             name: string;
             student_profiles_count: number;
+            enrolled_count: number;
+            max_students: number | null;
+            is_at_capacity: boolean;
             school_year: { id: number; label: string; is_active: boolean };
             grade_level: { id: number; name: string; order: number };
             adviser?: { id: number; name: string; credential: string } | null;
@@ -30,7 +34,7 @@ defineProps<{
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-foreground">Section Management</h1>
-                    <p class="text-sm text-muted-foreground">Manage classes, grade levels, and assigned teacher advisers.</p>
+                    <p class="text-sm text-muted-foreground">Manage classes, grade levels, student capacities, and assigned teacher advisers.</p>
                 </div>
                 <div>
                     <Link href="/admin/sections/create">
@@ -61,7 +65,7 @@ defineProps<{
                                     <th class="px-6 py-3.5">Grade Level</th>
                                     <th class="px-6 py-3.5">School Year</th>
                                     <th class="px-6 py-3.5">Class Adviser</th>
-                                    <th class="px-6 py-3.5 text-center">Enrolled Students</th>
+                                    <th class="px-6 py-3.5 text-center">Enrolled / Capacity</th>
                                     <th class="px-6 py-3.5 text-right">Actions</th>
                                 </tr>
                             </thead>
@@ -95,10 +99,26 @@ defineProps<{
                                         <span v-else class="italic text-muted-foreground">Unassigned</span>
                                     </td>
                                     <td class="px-6 py-4 text-center">
-                                        <span class="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                                            <Users class="h-3.5 w-3.5" />
-                                            {{ section.student_profiles_count }}
-                                        </span>
+                                        <div class="flex items-center justify-center gap-1.5">
+                                            <span
+                                                v-if="section.is_at_capacity"
+                                                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-300 dark:border-amber-700"
+                                            >
+                                                <AlertTriangle class="h-3.5 w-3.5" />
+                                                <span>{{ section.enrolled_count }} / {{ section.max_students }} Full</span>
+                                            </span>
+                                            <span
+                                                v-else-if="section.max_students"
+                                                class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded"
+                                            >
+                                                <Users class="h-3.5 w-3.5" />
+                                                {{ section.enrolled_count }} / {{ section.max_students }}
+                                            </span>
+                                            <span v-else class="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                                                <Users class="h-3.5 w-3.5" />
+                                                {{ section.enrolled_count }}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
                                         <Link

@@ -5,6 +5,7 @@ namespace App\Actions\Calendar;
 use App\Enums\UserRole;
 use App\Models\CalendarEvent;
 use App\Models\User;
+use App\Support\AuditLogger;
 use Illuminate\Validation\ValidationException;
 
 class DeleteCalendarEvent
@@ -20,6 +21,13 @@ class DeleteCalendarEvent
             ]);
         }
 
-        return (bool) $event->delete();
+        $title = $event->title;
+        $deleted = (bool) $event->delete();
+
+        if ($deleted) {
+            AuditLogger::log('calendar.event_deleted', "Deleted calendar event: {$title}");
+        }
+
+        return $deleted;
     }
 }

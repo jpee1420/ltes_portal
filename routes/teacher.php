@@ -19,6 +19,7 @@ Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher.')
 
     // Daily Attendance
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::get('/attendance/carry-forward', [AttendanceController::class, 'carryForward'])->name('attendance.carry-forward');
     Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
 
     // Calendar

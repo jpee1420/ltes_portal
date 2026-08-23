@@ -37,6 +37,7 @@ class UpdateSectionRequest extends FormRequest
                 )->ignore($section->id),
             ],
             'adviser_id' => ['nullable', 'exists:users,id'],
+            'max_students' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }
 

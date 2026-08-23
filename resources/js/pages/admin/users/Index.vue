@@ -4,7 +4,7 @@ import { ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { UserPlus, Users, KeyRound, Search, Shield, GraduationCap, School } from '@lucide/vue';
+import { UserPlus, Users, KeyRound, Search, Shield, GraduationCap, School, Upload } from '@lucide/vue';
 
 const props = defineProps<{
     users: {
@@ -52,7 +52,7 @@ watch([search, role], () => {
 });
 
 const confirmResetPassword = (user: { id: number; name: string; credential: string }) => {
-    if (confirm(`Are you sure you want to reset the password for "${user.name}"? It will be set back to their School ID (${user.credential}).`)) {
+    if (confirm(`Are you sure you want to reset the password for "${user.name}"? It will be set back to their default birthday formula.`)) {
         resettingUserId.value = user.id;
         router.post(
             `/admin/users/${user.id}/reset-password`,
@@ -78,7 +78,13 @@ const confirmResetPassword = (user: { id: number; name: string; credential: stri
                     <h1 class="text-2xl font-bold tracking-tight text-foreground">User Management</h1>
                     <p class="text-sm text-muted-foreground">Manage student, teacher, and administrator accounts (Total: {{ users.total }}).</p>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3">
+                    <Link href="/admin/users/students/import">
+                        <Button variant="secondary" class="gap-2">
+                            <Upload class="h-4 w-4" />
+                            Bulk Import CSV
+                        </Button>
+                    </Link>
                     <Link href="/admin/users/students/create">
                         <Button class="gap-2">
                             <GraduationCap class="h-4 w-4" />
@@ -118,99 +124,108 @@ const confirmResetPassword = (user: { id: number; name: string; credential: stri
                 </div>
             </div>
 
+            <!-- Users Table -->
             <Card class="rounded-xl border border-border/70 shadow-sm overflow-hidden">
-                <CardHeader class="pb-3 border-b border-border bg-muted/20">
-                    <CardTitle class="text-lg font-semibold flex items-center gap-2">
-                        <Users class="h-5 w-5 text-primary" />
-                        Account Directory
-                    </CardTitle>
-                    <CardDescription>
-                        User accounts with credential numbers and quick reset actions.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="p-0">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="border-b border-border text-xs uppercase text-muted-foreground bg-muted/40 font-semibold">
-                                <tr>
-                                    <th class="px-6 py-3.5">Name</th>
-                                    <th class="px-6 py-3.5">Role</th>
-                                    <th class="px-6 py-3.5">School ID / Credential</th>
-                                    <th class="px-6 py-3.5">Email</th>
-                                    <th class="px-6 py-3.5 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-border">
-                                <tr v-if="users.data.length === 0">
-                                    <td colspan="5" class="px-6 py-12 text-center text-muted-foreground">
-                                        <Users class="mx-auto h-8 w-8 mb-2 opacity-40" />
-                                        No users found matching the filter criteria.
-                                    </td>
-                                </tr>
-                                <tr v-for="user in users.data" :key="user.id" class="hover:bg-muted/30 transition-colors">
-                                    <td class="px-6 py-4 font-medium text-foreground">
-                                        {{ user.name }}
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span
-                                            class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                                            :class="{
-                                                'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300': user.role === 'admin',
-                                                'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300': user.role === 'teacher',
-                                                'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300': user.role === 'student',
-                                            }"
-                                        >
-                                            <Shield v-if="user.role === 'admin'" class="h-3 w-3" />
-                                            <School v-else-if="user.role === 'teacher'" class="h-3 w-3" />
-                                            <GraduationCap v-else class="h-3 w-3" />
-                                            {{ user.role === 'admin' ? 'Administrator' : user.role === 'teacher' ? 'Teacher' : 'Student' }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 font-mono text-xs font-medium text-foreground">
-                                        {{ user.credential }}
-                                    </td>
-                                    <td class="px-6 py-4 text-xs text-muted-foreground">
-                                        {{ user.email || '—' }}
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <button
-                                            @click="confirmResetPassword(user)"
-                                            :disabled="resettingUserId === user.id"
-                                            class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                                            title="Reset Password to default credential"
-                                        >
-                                            <KeyRound class="h-3.5 w-3.5" />
-                                            <span>{{ resettingUserId === user.id ? 'Resetting...' : 'Reset Password' }}</span>
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="border-b border-border bg-muted/40 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            <tr>
+                                <th class="px-4 py-3.5">Name</th>
+                                <th class="px-4 py-3.5">School ID / Credential</th>
+                                <th class="px-4 py-3.5">Role</th>
+                                <th class="px-4 py-3.5">Email</th>
+                                <th class="px-4 py-3.5">Details</th>
+                                <th class="px-4 py-3.5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border">
+                            <tr
+                                v-for="user in users.data"
+                                :key="user.id"
+                                class="transition-colors hover:bg-muted/30"
+                            >
+                                <td class="px-4 py-3.5 font-medium text-foreground">
+                                    <div class="flex items-center gap-2">
+                                        <div class="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+                                            {{ user.name.charAt(0) }}
+                                        </div>
+                                        <span>{{ user.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3.5 font-mono text-xs text-muted-foreground">
+                                    {{ user.credential }}
+                                </td>
+                                <td class="px-4 py-3.5">
+                                    <span
+                                        :class="[
+                                            'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+                                            user.role === 'admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300' : '',
+                                            user.role === 'teacher' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300' : '',
+                                            user.role === 'student' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : '',
+                                        ]"
+                                    >
+                                        {{ user.role.charAt(0).toUpperCase() + user.role.slice(1) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3.5 text-xs text-muted-foreground">
+                                    {{ user.email || '—' }}
+                                </td>
+                                <td class="px-4 py-3.5 text-xs text-muted-foreground">
+                                    <span v-if="user.student_profile">
+                                        Gender: {{ user.student_profile.gender }} | DOB: {{ user.student_profile.birth_date }}
+                                    </span>
+                                    <span v-else-if="user.teacher_profile">
+                                        Emp #: {{ user.teacher_profile.employee_no }}
+                                    </span>
+                                    <span v-else>—</span>
+                                </td>
+                                <td class="px-4 py-3.5 text-right">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        class="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+                                        :disabled="resettingUserId === user.id"
+                                        @click="confirmResetPassword(user)"
+                                    >
+                                        <KeyRound class="h-3.5 w-3.5" />
+                                        <span>{{ resettingUserId === user.id ? 'Resetting...' : 'Reset Password' }}</span>
+                                    </Button>
+                                </td>
+                            </tr>
+                            <tr v-if="users.data.length === 0">
+                                <td colspan="6" class="px-4 py-8 text-center text-sm text-muted-foreground">
+                                    No users found matching your search.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-                    <!-- Pagination -->
-                    <div v-if="users.links.length > 3" class="flex items-center justify-between border-t border-border px-6 py-4">
-                        <div class="text-xs text-muted-foreground">
-                            Showing page {{ users.current_page }} of {{ users.last_page }}
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <Link
-                                v-for="(link, i) in users.links"
-                                :key="i"
-                                :href="link.url || '#'"
-                                :class="[
-                                    'px-3 py-1.5 text-xs rounded-md font-medium transition-colors',
-                                    link.active
-                                        ? 'bg-primary text-primary-foreground font-semibold'
-                                        : link.url
-                                          ? 'hover:bg-muted text-foreground'
-                                          : 'text-muted-foreground opacity-50 cursor-not-allowed'
-                                ]"
-                                v-html="link.label"
-                            />
-                        </div>
+                <!-- Pagination -->
+                <div
+                    v-if="users.last_page > 1"
+                    class="flex items-center justify-between border-t border-border px-4 py-3 text-xs text-muted-foreground"
+                >
+                    <div>
+                        Showing page {{ users.current_page }} of {{ users.last_page }}
                     </div>
-                </CardContent>
+                    <div class="flex items-center gap-1">
+                        <Link
+                            v-for="(link, i) in users.links"
+                            :key="i"
+                            :href="link.url || '#'"
+                            :class="[
+                                'px-2.5 py-1 rounded border text-xs transition-colors',
+                                link.active
+                                    ? 'bg-primary text-primary-foreground border-primary font-medium'
+                                    : link.url
+                                    ? 'bg-background hover:bg-muted border-border text-foreground'
+                                    : 'opacity-40 cursor-not-allowed border-transparent text-muted-foreground'
+                            ]"
+                            v-html="link.label"
+                        />
+                    </div>
+                </div>
             </Card>
         </div>
     </div>

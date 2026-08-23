@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\CalendarController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\SchoolYearController;
@@ -14,6 +15,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
     Route::get('/users/students/create', [UserManagementController::class, 'createStudent'])->name('users.students.create');
     Route::post('/users/students', [UserManagementController::class, 'storeStudent'])->name('users.students.store');
+    Route::get('/users/students/import', [UserManagementController::class, 'importStudentsForm'])->name('users.students.import');
+    Route::post('/users/students/import', [UserManagementController::class, 'importStudents'])->name('users.students.import.process');
+    Route::get('/users/students/import/template', [UserManagementController::class, 'downloadImportTemplate'])->name('users.students.import.template');
     Route::get('/users/staff/create', [UserManagementController::class, 'createStaff'])->name('users.staff.create');
     Route::post('/users/staff', [UserManagementController::class, 'storeStaff'])->name('users.staff.store');
     Route::post('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
@@ -34,4 +38,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/calendar', [CalendarController::class, 'store'])->name('calendar.store');
     Route::put('/calendar/{calendarEvent}', [CalendarController::class, 'update'])->name('calendar.update');
     Route::delete('/calendar/{calendarEvent}', [CalendarController::class, 'destroy'])->name('calendar.destroy');
+
+    // Audit Log
+    Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
 });

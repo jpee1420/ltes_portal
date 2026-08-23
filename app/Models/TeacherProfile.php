@@ -16,14 +16,27 @@ use Illuminate\Support\Carbon;
  * @property string $first_name
  * @property string $last_name
  * @property string|null $middle_name
+ * @property Carbon|null $birth_date
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['user_id', 'employee_no', 'first_name', 'last_name', 'middle_name'])]
+#[Fillable(['user_id', 'employee_no', 'first_name', 'last_name', 'middle_name', 'birth_date'])]
 class TeacherProfile extends Model
 {
     /** @use HasFactory<TeacherProfileFactory> */
     use HasFactory;
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'birth_date' => 'date',
+        ];
+    }
 
     /**
      * Get the user account associated with the teacher profile.

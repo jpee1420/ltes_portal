@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useInitials } from '@/composables/useInitials';
 import { Users, GraduationCap, TableProperties, CalendarDays } from '@lucide/vue';
+
+const { getInitials } = useInitials();
 
 defineProps<{
     section: {
@@ -17,7 +21,7 @@ defineProps<{
             last_name: string;
             gender: string;
             birth_date: string;
-            user: { name: string };
+            user: { name: string; avatar?: string | null };
         }>;
     } | null;
 }>();
@@ -98,7 +102,22 @@ defineProps<{
                                     </tr>
                                     <tr v-for="(student, index) in section.student_profiles" :key="student.id" class="hover:bg-muted/30 transition-colors">
                                         <td class="px-6 py-4 text-xs text-muted-foreground">{{ index + 1 }}</td>
-                                        <td class="px-6 py-4 font-semibold text-foreground">{{ student.user.name }}</td>
+                                        <td class="px-6 py-4 font-semibold text-foreground">
+                                            <div class="flex items-center gap-3">
+                                                <Avatar class="h-8 w-8 rounded-full border border-border">
+                                                    <AvatarImage
+                                                        v-if="student.user.avatar"
+                                                        :src="student.user.avatar"
+                                                        :alt="student.user.name"
+                                                        class="object-cover"
+                                                    />
+                                                    <AvatarFallback class="bg-primary/10 text-primary font-bold text-xs">
+                                                        {{ getInitials(student.user.name) }}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <span>{{ student.user.name }}</span>
+                                            </div>
+                                        </td>
                                         <td class="px-6 py-4 font-mono text-xs text-muted-foreground">{{ student.lrn }}</td>
                                         <td class="px-6 py-4">
                                             <span

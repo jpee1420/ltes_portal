@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { UserPlus, Users, KeyRound, Search, Shield, GraduationCap, School, Upload } from '@lucide/vue';
+import { useInitials } from '@/composables/useInitials';
+import { UserPlus, Users, KeyRound, Search, Shield, GraduationCap, School, Upload, Camera, Loader2 } from '@lucide/vue';
 
 const props = defineProps<{
     users: {
@@ -14,6 +16,7 @@ const props = defineProps<{
             role: string;
             credential: string;
             email: string | null;
+            avatar?: string | null;
             created_at: string;
             student_profile?: { lrn: string; gender: string; birth_date: string };
             teacher_profile?: { employee_no: string };
@@ -29,9 +32,14 @@ const props = defineProps<{
     };
 }>();
 
+const { getInitials } = useInitials();
+
 const search = ref(props.filters?.search || '');
 const role = ref(props.filters?.role || '');
 const resettingUserId = ref<number | null>(null);
+const uploadingUserId = ref<number | null>(null);
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const selectedUserForPhoto = ref<{ id: number; name: string } | null>(null);
 
 let searchTimeout: ReturnType<typeof setTimeout>;
 watch([search, role], () => {
@@ -65,6 +73,44 @@ const confirmResetPassword = (user: { id: number; name: string; credential: stri
             }
         );
     }
+};
+
+const triggerPhotoUpload = (user: { id: number; name: string }) => {
+    selectedUserForPhoto.value = user;
+    fileInputRef.value?.click();
+};
+
+const handlePhotoSelected = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    const user = selectedUserForPhoto.value;
+
+    if (!file || !user) {
+        return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+        alert('Image file size must not exceed 2MB. Please choose a smaller photo.');
+        target.value = '';
+        selectedUserForPhoto.value = null;
+        return;
+    }
+
+    uploadingUserId.value = user.id;
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    router.post(`/admin/users/${user.id}/photo`, formData, {
+        preserveScroll: true,
+        forceFormData: true,
+        onFinish: () => {
+            uploadingUserId.value = null;
+            selectedUserForPhoto.value = null;
+            if (fileInputRef.value) {
+                fileInputRef.value.value = '';
+            }
+        },
+    });
 };
 </script>
 
@@ -145,11 +191,33 @@ const confirmResetPassword = (user: { id: number; name: string; credential: stri
                                 class="transition-colors hover:bg-muted/30"
                             >
                                 <td class="px-4 py-3.5 font-medium text-foreground">
-                                    <div class="flex items-center gap-2">
-                                        <div class="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                                            {{ user.name.charAt(0) }}
+                                    <div class="flex items-center gap-3">
+                                        <button
+                                            type="button"
+                                            class="relative group rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                            title="Click to upload/change photo"
+                                            :disabled="uploadingUserId === user.id"
+                                            @click="triggerPhotoUpload(user)"
+                                        >
+                                            <Avatar class="h-9 w-9 overflow-hidden rounded-full border border-border">
+                                                <AvatarImage
+                                                    v-if="user.avatar"
+                                                    :src="user.avatar"
+                                                    :alt="user.name"
+                                                    class="h-full w-full object-cover"
+                                                />
+                                                <AvatarFallback class="bg-primary/10 text-primary font-bold text-xs">
+                                                    {{ getInitials(user.name) }}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div class="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Camera class="h-3.5 w-3.5 text-white" />
+                                            </div>
+                                        </button>
+                                        <div class="flex flex-col">
+                                            <span>{{ user.name }}</span>
+                                            <span v-if="user.email" class="text-xs text-muted-foreground sm:hidden">{{ user.email }}</span>
                                         </div>
-                                        <span>{{ user.name }}</span>
                                     </div>
                                 </td>
                                 <td class="px-4 py-3.5 font-mono text-xs text-muted-foreground">
@@ -180,16 +248,31 @@ const confirmResetPassword = (user: { id: number; name: string; credential: stri
                                     <span v-else>—</span>
                                 </td>
                                 <td class="px-4 py-3.5 text-right">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        class="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
-                                        :disabled="resettingUserId === user.id"
-                                        @click="confirmResetPassword(user)"
-                                    >
-                                        <KeyRound class="h-3.5 w-3.5" />
-                                        <span>{{ resettingUserId === user.id ? 'Resetting...' : 'Reset Password' }}</span>
-                                    </Button>
+                                    <div class="flex items-center justify-end gap-1.5">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            class="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+                                            :disabled="uploadingUserId === user.id"
+                                            title="Upload ID Photo"
+                                            @click="triggerPhotoUpload(user)"
+                                        >
+                                            <Loader2 v-if="uploadingUserId === user.id" class="h-3.5 w-3.5 animate-spin" />
+                                            <Camera v-else class="h-3.5 w-3.5" />
+                                            <span>{{ uploadingUserId === user.id ? 'Uploading...' : (user.avatar ? 'Change Photo' : 'Upload Photo') }}</span>
+                                        </Button>
+
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            class="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+                                            :disabled="resettingUserId === user.id"
+                                            @click="confirmResetPassword(user)"
+                                        >
+                                            <KeyRound class="h-3.5 w-3.5" />
+                                            <span>{{ resettingUserId === user.id ? 'Resetting...' : 'Reset' }}</span>
+                                        </Button>
+                                    </div>
                                 </td>
                             </tr>
                             <tr v-if="users.data.length === 0">
@@ -200,6 +283,15 @@ const confirmResetPassword = (user: { id: number; name: string; credential: stri
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Hidden Photo File Input -->
+                <input
+                    ref="fileInputRef"
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                    class="hidden"
+                    @change="handlePhotoSelected"
+                />
 
                 <!-- Pagination -->
                 <div

@@ -1,9 +1,16 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useInitials } from '@/composables/useInitials';
 import { Users, GraduationCap, TableProperties, CalendarDays, BookOpen, CheckCircle, AlertCircle, ArrowRight, ShieldCheck, Clock } from '@lucide/vue';
+
+const page = usePage();
+const user = computed(() => (page.props.auth as any)?.user);
+const { getInitials } = useInitials();
 
 defineProps<{
     section: {
@@ -56,19 +63,32 @@ function getCategoryDot(color: string) {
         <div class="flex h-full flex-1 flex-col gap-6 p-4 md:p-8">
             <!-- Welcome Header -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                            <ShieldCheck class="h-3.5 w-3.5" />
-                            Faculty &amp; Adviser Portal
-                        </span>
+                <div class="flex items-center gap-4">
+                    <Avatar class="h-14 w-14 sm:h-16 sm:w-16 rounded-2xl border-2 border-primary/20 shadow-sm">
+                        <AvatarImage
+                            v-if="user?.avatar"
+                            :src="user.avatar"
+                            :alt="user?.name || 'Teacher'"
+                            class="object-cover"
+                        />
+                        <AvatarFallback class="bg-primary/10 text-primary font-bold text-lg rounded-2xl">
+                            {{ getInitials(user?.name) }}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                                <ShieldCheck class="h-3.5 w-3.5" />
+                                Faculty &amp; Adviser Portal
+                            </span>
+                        </div>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground mt-1">
+                            Homeroom Teacher Dashboard
+                        </h1>
+                        <p class="text-sm text-muted-foreground">
+                            Manage your homeroom advisory learners, encode quarterly grades, and record daily attendance.
+                        </p>
                     </div>
-                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground mt-1">
-                        Homeroom Teacher Dashboard
-                    </h1>
-                    <p class="text-sm text-muted-foreground">
-                        Manage your homeroom advisory learners, encode quarterly grades, and record daily attendance.
-                    </p>
                 </div>
 
                 <div v-if="section" class="flex flex-wrap items-center gap-2">

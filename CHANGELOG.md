@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0] - 2026-08-23
+
+### Added
+- **Administrator User ID Photo Upload:**
+  - Added nullable `avatar` column to `users` table with `UploadUserPhoto` action and `POST /admin/users/{user}/photo` endpoint.
+  - Automated replacement and purging of previous avatar files from `public` disk upon new photo upload.
+  - Integrated audit trail logging `user.photo_updated` for all photo upload events.
+  - Interactive photo upload trigger and avatar thumbnail preview directly within Admin User Management directory (`admin/users/Index.vue`).
+- **Portal-Wide Avatar & Identity Display:**
+  - Official avatar rendering in application sidebar (`NavUser` / `UserInfo`) for authenticated users.
+  - Official student photo display in Learner & Parent Dashboard overview (`student/Dashboard.vue`).
+  - Teacher profile avatar in Faculty & Homeroom Dashboard header (`teacher/Dashboard.vue`).
+  - Student photo thumbnails in Class Section Roster (`admin/sections/Show.vue`) and Teacher Advisory Roster (`teacher/roster/Index.vue`).
+- **Documentation & Tests:**
+  - Architecture Decision Record `ADR-007` in `docs/decisions/0007-user-id-photo-upload.md`.
+  - Feature test suite `UserPhotoUploadTest` bringing test suite to 132 passing tests (688 assertions).
+
+---
+
 ## [0.3.0] - 2026-08-23
 
 ### Added

@@ -23,7 +23,7 @@ class SectionFactory extends Factory
         return [
             'school_year_id' => SchoolYear::factory(),
             'grade_level_id' => GradeLevel::factory(),
-            'name' => fake()->randomElement(['Mabini', 'Rizal', 'Bonifacio', 'Luna', 'Silang', 'Aguinaldo', 'Del Pilar', 'Jacinto']),
+            'name' => fake()->randomElement(['Mabini', 'Rizal', 'Bonifacio', 'Luna', 'Silang', 'Aguinaldo', 'Del Pilar', 'Jacinto']) . ' ' . fake()->unique()->numberBetween(1, 99999),
             'adviser_id' => null,
         ];
     }

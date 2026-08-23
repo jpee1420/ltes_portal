@@ -17,6 +17,7 @@ test('section model calculates enrolled count and capacity correctly', function 
     $section = Section::factory()->create([
         'school_year_id' => $schoolYear->id,
         'grade_level_id' => $gradeLevel->id,
+        'name' => 'Capacity Test Section A',
         'max_students' => 2,
     ]);
 
@@ -47,6 +48,7 @@ test('section model calculates enrolled count and capacity correctly', function 
     $unlimitedSection = Section::factory()->create([
         'school_year_id' => $schoolYear->id,
         'grade_level_id' => $gradeLevel->id,
+        'name' => 'Capacity Test Section B',
         'max_students' => null,
     ]);
 

@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useInitials } from '@/composables/useInitials';
 import { ArrowLeft, UserPlus, UserMinus, Users, GraduationCap, School, AlertTriangle, CheckCircle2 } from '@lucide/vue';
+
+const { getInitials } = useInitials();
 
 const props = defineProps<{
     section: {
@@ -22,7 +26,7 @@ const props = defineProps<{
             last_name: string;
             gender: string;
             birth_date: string;
-            user: { name: string };
+            user: { name: string; avatar?: string | null };
         }>;
     };
     unassignedStudents: Array<{
@@ -31,7 +35,7 @@ const props = defineProps<{
         first_name: string;
         last_name: string;
         gender: string;
-        user: { name: string };
+        user: { name: string; avatar?: string | null };
     }>;
 }>();
 
@@ -194,7 +198,22 @@ const removeStudent = (student: { id: number; user: { name: string } }) => {
                                 </tr>
                                 <tr v-for="(student, index) in section.student_profiles" :key="student.id" class="hover:bg-muted/30 transition-colors">
                                     <td class="px-6 py-3.5 text-xs text-muted-foreground">{{ index + 1 }}</td>
-                                    <td class="px-6 py-3.5 font-medium text-foreground">{{ student.user.name }}</td>
+                                    <td class="px-6 py-3.5 font-medium text-foreground">
+                                        <div class="flex items-center gap-2.5">
+                                            <Avatar class="h-7 w-7 rounded-full border border-border">
+                                                <AvatarImage
+                                                    v-if="student.user.avatar"
+                                                    :src="student.user.avatar"
+                                                    :alt="student.user.name"
+                                                    class="object-cover"
+                                                />
+                                                <AvatarFallback class="bg-primary/10 text-primary font-bold text-[10px]">
+                                                    {{ getInitials(student.user.name) }}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <span>{{ student.user.name }}</span>
+                                        </div>
+                                    </td>
                                     <td class="px-6 py-3.5 font-mono text-xs text-muted-foreground">{{ student.lrn }}</td>
                                     <td class="px-6 py-3.5 text-xs">{{ student.gender === 'M' ? 'Male' : 'Female' }}</td>
                                     <td class="px-6 py-3.5 text-xs text-muted-foreground">{{ student.birth_date }}</td>

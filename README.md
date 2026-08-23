@@ -13,9 +13,9 @@ The Lipit-Tomeeng Elementary School Portal is a centralized web platform designe
 1. **👑 Administrator Portal:**
    - Manage academic cycles and activate school years (`2026-2027`).
    - Create and configure class sections (Kindergarten through Grade 6), set learner capacity limits, and assign teacher advisers.
-   - User account directory: search, filter, register students (12-digit LRN) and staff (7-digit Employee No), and reset passwords using the Birthday formula (`MMDDYYYY + last4`).
+   - User account directory: search, filter, register students (12-digit LRN) and staff (7-digit Employee No), upload/replace official ID photos, and reset passwords using the Birthday formula (`MMDDYYYY + last4`).
    - Bulk Student CSV Import: import student batches from spreadsheets with duplicate LRN skip reporting and validation summaries.
-   - Immutable Audit Log: monitor security actions, logins, logouts, session timeouts, and state-mutating portal transactions.
+   - Immutable Audit Log: monitor security actions, logins, logouts, session timeouts, photo uploads, and state-mutating portal transactions.
    - Section roster enrollment: enroll and unassign learners to/from class sections with capacity warnings.
    - School-Wide Calendar Management: schedule DepEd activities, periodic examinations, holidays, and campus programs.
 
@@ -116,6 +116,7 @@ Detailed technical rationale and trade-offs are documented in [`docs/decisions/`
 - [**ADR-004:** DepEd Form 138-E Grading Rules, Passing Threshold 75, and Daily Attendance Matrix](docs/decisions/0004-deped-grading-scale-and-daily-attendance.md)
 - [**ADR-005:** School Calendar & Role-Aware Event Scoping](docs/decisions/0005-school-calendar-and-event-scoping.md)
 - [**ADR-006:** Bulk CSV Import, Audit Trail, and Portal Workflow Enhancements](docs/decisions/0006-bulk-csv-import-audit-log-and-workflow-enhancements.md)
+- [**ADR-007:** Administrator User ID Photo Upload and Portal Display](docs/decisions/0007-user-id-photo-upload.md)
 
 ---
 
@@ -125,6 +126,6 @@ Every feature is covered with automated tests using **Pest PHP**:
 ```bash
 php artisan test --compact
 ```
-- **127 feature and unit tests**
-- **669 assertions**
-- 100% test passing rate across Authentication, User Management, Bulk CSV Import, Audit Trail, Academic Structure, Sections, Grading, Attendance, School Calendar, and Dashboards.
+- **132 feature and unit tests**
+- **688 assertions**
+- 100% test passing rate across Authentication, User Management, ID Photo Upload, Bulk CSV Import, Audit Trail, Academic Structure, Sections, Grading, Attendance, School Calendar, and Dashboards.

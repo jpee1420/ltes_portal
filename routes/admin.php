@@ -21,6 +21,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users/staff/create', [UserManagementController::class, 'createStaff'])->name('users.staff.create');
     Route::post('/users/staff', [UserManagementController::class, 'storeStaff'])->name('users.staff.store');
     Route::post('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
+    Route::post('/users/{user}/photo', [UserManagementController::class, 'uploadPhoto'])->name('users.photo');
 
     // School Year Management
     Route::get('/school-years', [SchoolYearController::class, 'index'])->name('school-years.index');

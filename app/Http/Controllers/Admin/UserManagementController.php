@@ -6,6 +6,7 @@ use App\Actions\UserManagement\BulkImportStudents;
 use App\Actions\UserManagement\CreateStaffAccount;
 use App\Actions\UserManagement\CreateStudentAccount;
 use App\Actions\UserManagement\ResetUserPassword;
+use App\Actions\UserManagement\UploadUserPhoto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ImportStudentsRequest;
 use App\Http\Requests\Admin\StoreStaffRequest;
@@ -154,5 +155,19 @@ class UserManagementController extends Controller
         $action->handle($user);
 
         return back()->with('success', "Password for {$user->name} has been reset to default formula.");
+    }
+
+    /**
+     * Upload an ID photo for the specified user.
+     */
+    public function uploadPhoto(Request $request, User $user, UploadUserPhoto $action): RedirectResponse
+    {
+        $request->validate([
+            'photo' => ['required', 'file', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+        ]);
+
+        $action->handle($user, $request->file('photo'));
+
+        return back()->with('success', "Photo uploaded successfully for {$user->name}.");
     }
 }

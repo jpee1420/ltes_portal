@@ -1,9 +1,16 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useInitials } from '@/composables/useInitials';
 import { Award, BookOpen, CalendarCheck, FileText, GraduationCap, ArrowRight, User, CalendarDays, Clock } from '@lucide/vue';
+
+const page = usePage();
+const user = computed(() => (page.props.auth as any)?.user);
+const { getInitials } = useInitials();
 
 defineProps<{
     student: {
@@ -81,23 +88,36 @@ function getCategoryDot(color: string) {
                 <!-- Welcome Banner -->
                 <Card class="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-background shadow-sm p-6">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="inline-flex items-center gap-1 rounded-md bg-primary/20 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                                    <User class="h-3 w-3" />
-                                    Learner &amp; Parent Portal
-                                </span>
-                                <span class="text-xs text-muted-foreground">S.Y. {{ student.school_year }}</span>
-                            </div>
-                            <h1 class="text-2xl sm:text-3xl font-black text-foreground mt-2">
-                                {{ student.name }}
-                            </h1>
-                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1">
-                                <span>LRN: <strong class="font-mono text-foreground">{{ student.lrn }}</strong></span>
-                                <span>&bull;</span>
-                                <span>{{ student.grade_level || 'Unassigned' }} &mdash; {{ student.section || 'No Section' }}</span>
-                                <span v-if="student.adviser">&bull;</span>
-                                <span v-if="student.adviser">Adviser: <strong class="text-foreground">{{ student.adviser }}</strong></span>
+                        <div class="flex items-center gap-4">
+                            <Avatar class="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl border-2 border-primary/30 shadow-md">
+                                <AvatarImage
+                                    v-if="user?.avatar"
+                                    :src="user.avatar"
+                                    :alt="student.name"
+                                    class="object-cover"
+                                />
+                                <AvatarFallback class="bg-primary/20 text-primary font-black text-xl sm:text-2xl rounded-2xl">
+                                    {{ getInitials(student.name) }}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex items-center gap-1 rounded-md bg-primary/20 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                                        <User class="h-3 w-3" />
+                                        Learner &amp; Parent Portal
+                                    </span>
+                                    <span class="text-xs text-muted-foreground">S.Y. {{ student.school_year }}</span>
+                                </div>
+                                <h1 class="text-2xl sm:text-3xl font-black text-foreground mt-2">
+                                    {{ student.name }}
+                                </h1>
+                                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mt-1">
+                                    <span>LRN: <strong class="font-mono text-foreground">{{ student.lrn }}</strong></span>
+                                    <span>&bull;</span>
+                                    <span>{{ student.grade_level || 'Unassigned' }} &mdash; {{ student.section || 'No Section' }}</span>
+                                    <span v-if="student.adviser">&bull;</span>
+                                    <span v-if="student.adviser">Adviser: <strong class="text-foreground">{{ student.adviser }}</strong></span>
+                                </div>
                             </div>
                         </div>
 
